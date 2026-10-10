@@ -148,3 +148,42 @@ cli:run_workflow_execution Run complete +2.5s
 ## Why this file is intentionally short
 
 This file is loaded at first invocation and affects every task. Keep it concise and move detailed or domain-specific guidance into skills so that context is fetched only when relevant.
+
+## Base44 dev environment (docker compose)
+
+The Base44 sandbox runs the **documentation site** — the only browsable surface in
+this repo — from the cloned source:
+
+```bash
+docker compose -f docker-compose.base44.yml up -d   # host port 3000
+```
+
+Findings worth keeping:
+
+- The site is an Astro/Starlight app in `docs/`; it uses Astro `base: "/gh-aw/"`, so
+  its own dev server answers on `/gh-aw/` and returns 404 at `/`. The `web` (nginx)
+  service publishes host port 3000 and rewrites `/` (and the bare `/gh-aw/editor/`
+  directory) to the right path, then proxies everything to `docs:4321`, including the
+  HMR WebSocket. Config: `.base44/nginx.conf`.
+- Dependencies are installed at container start in `docs/` with
+  `npm ci --legacy-peer-deps` (the flag matters; that is what `docs.yml` uses).
+- Two gallery pages (`gallery/ai-issue-triage.md`, `gallery/ci-failure-investigation.md`)
+  embed workflows from the external `githubnext/agentics` repository through the
+  `<!-- agentics-workflow: ... -->` remark directive. `docs.yml` checks that repo out
+  next to the workspace and sets `AGENTICS_WORKFLOWS_DIR`. The compose startup fetches
+  the two referenced files into `/tmp/agentics-workflows` and points
+  `AGENTICS_WORKFLOWS_DIR` there; only those two pages are affected if the fetch fails.
+- The standalone editor at `/gh-aw/editor/` needs `docs/public/wasm/gh-aw.wasm` and
+  `wasm_exec.js`, which are **not** built here — run `./scripts/bundle-wasm-docs.sh`
+  (needs a Go toolchain matching `go.mod`) to enable the in-browser compiler. The
+  autocomplete/hover parts of the editor work without it.
+- `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` (set by the platform) is passed through to
+  the service so Vite accepts the preview hostname.
+- Do **not** register Vite dev middleware from an Astro integration
+  (`astro:server:setup` + `server.middlewares.use`): observed to break Starlight's
+  index route, making `/gh-aw/` 404 while other pages keep working. The nginx front
+  door handles path rewriting instead; `docs/astro.config.mjs` is unmodified for the
+  sandbox.
+- Verify: `curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/` returns `200`
+  and the page title is “GitHub Agentic Workflows”. `docker compose -f
+  docker-compose.base44.yml ps` shows `docs` and `web` both healthy.

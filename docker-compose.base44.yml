@@ -1,0 +1,68 @@
+# Base44 development environment for the gh-aw repository.
+#
+# The only browsable surface in this repo is the Astro/Starlight documentation
+# site under `docs/`. It runs on the dev server's port 4321 behind a tiny nginx
+# front door that publishes host port 3000 and rewrites the preview root `/` to
+# the site's `/gh-aw/` base path (the site serves nothing at `/`). The Go CLI in
+# `cmd/` is a command-line tool, not a server, so it is not part of the preview
+# stack.
+#
+# Everything runs from the cloned source via a bind mount, so edits hot-reload.
+
+services:
+  docs:
+    image: node:24
+    working_dir: /app
+    restart: on-failure
+    volumes:
+      - .:/app
+    environment:
+      # Bare pass-through: the platform sets these in the sandbox environment.
+      # BASE44_PREVIEW_MODE marks the sandbox; Vite reads
+      # __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS and appends it to allowedHosts so
+      # the preview's public hostname is accepted.
+      - BASE44_PREVIEW_MODE
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+      # Two gallery pages embed workflows from the external githubnext/agentics
+      # repository (the docs CI checks that repo out next to the workspace).
+      # Fetch the referenced files at startup into the container; if the fetch
+      # fails only those two pages are affected.
+      - AGENTICS_WORKFLOWS_DIR=/tmp/agentics-workflows
+    command:
+      - sh
+      - -ec
+      - |
+        mkdir -p /tmp/agentics-workflows
+        curl -fsS --retry 2 --max-time 30 -o /tmp/agentics-workflows/issue-triage.md https://raw.githubusercontent.com/githubnext/agentics/main/workflows/issue-triage.md || true
+        curl -fsS --retry 2 --max-time 30 -o /tmp/agentics-workflows/ci-doctor.md https://raw.githubusercontent.com/githubnext/agentics/main/workflows/ci-doctor.md || true
+        cd docs
+        CI=true npm ci --legacy-peer-deps
+        exec npm run dev -- --host 0.0.0.0 --port 4321
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:4321/gh-aw/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
+
+  # Preview front door (host port 3000 -> the docs service). See .base44/nginx.conf.
+  web:
+    image: nginx:alpine
+    restart: on-failure
+    ports:
+      - "3000:80"
+    volumes:
+      - ./.base44/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - docs
+    healthcheck:
+      # Proxies through to the dev server, so this checks the whole chain.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/gh-aw/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 200s
