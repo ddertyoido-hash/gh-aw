@@ -1,0 +1,52 @@
+# Base44 sandbox environment for the gh-aw cinematic site (web/).
+#
+# Runs the Vite dev server from the bind-mounted clone so edits are visible
+# immediately — never from a prebuilt bundle.
+#   - host port 3000 is the preview entry point
+#   - dependencies are synced from web/package-lock.json on every start
+services:
+  web:
+    # Plain runtime image: the app code comes from the bind mount, not the image.
+    image: node:22
+    working_dir: /app
+    command:
+      - sh
+      - -ec
+      - |
+        npm install --no-audit --no-fund
+        exec npm run dev -- --host 0.0.0.0 --port 5173
+    ports:
+      - '3000:5173'
+    volumes:
+      - ./web:/app
+      - web_node_modules:/app/node_modules
+    environment:
+      # Passed through from the platform as-is; vite.config.ts only acts when
+      # BASE44_PREVIEW_MODE is exactly "1" (unset ⇒ stock Vite behaviour).
+      - BASE44_PREVIEW_MODE
+      - BASE44_SANDBOX_HOST_DOMAIN
+      - BASE44_PUBLIC_HOST_SUFFIX
+      # Vite >= 6.1 appends this bare value to server.allowedHosts.
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+      - CHOKIDAR_USEPOLLING=1
+    depends_on: {}
+    healthcheck:
+      # Confirms the dev server answers AND is serving the live source entry,
+      # not a stale production bundle.
+      test:
+        - CMD
+        - node
+        - -e
+        - |
+          fetch('http://127.0.0.1:5173/')
+            .then((res) => res.text())
+            .then((html) => process.exit(html.includes('/src/main.tsx') ? 0 : 1))
+            .catch(() => process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
+    restart: on-failure
+
+volumes:
+  web_node_modules:

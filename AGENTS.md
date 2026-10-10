@@ -148,3 +148,15 @@ cli:run_workflow_execution Run complete +2.5s
 ## Why this file is intentionally short
 
 This file is loaded at first invocation and affects every task. Keep it concise and move detailed or domain-specific guidance into skills so that context is fetched only when relevant.
+
+## `web/` — the Base44 sandbox preview app
+
+`web/` is a separate Vite + React marketing site for gh-aw, unrelated to the Go
+compiler and the Astro docs site. It is not part of any Go build, test or lint
+target, and it has its own `package.json`, so `make` commands are unaffected.
+
+- Run it with `docker compose -f docker-compose.base44.yml up -d` (preview on host
+  port 3000). Dependencies install from `web/package-lock.json` at container start.
+- Always edit `web/` source and let the dev server hot-reload; do not build a
+  production bundle for the preview.
+- Details, structure and verification steps: [web/README.md](web/README.md).

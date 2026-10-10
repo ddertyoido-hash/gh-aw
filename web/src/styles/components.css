@@ -1,0 +1,657 @@
+/* ---------------------------------------------------------------------------
+   Shared components — navigation, buttons, reveal masks, atmosphere, materials
+   --------------------------------------------------------------------------- */
+
+/* --- Scroll progress ------------------------------------------------------- */
+
+.progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 120;
+  pointer-events: none;
+  background: rgba(245, 245, 247, 0.06);
+}
+
+.progress__bar {
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--chrome), var(--super));
+}
+
+/* --- Film grain ------------------------------------------------------------ */
+
+.grain {
+  position: fixed;
+  inset: -12%;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grainShift 1.1s steps(6) infinite;
+}
+
+@keyframes grainShift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  16% {
+    transform: translate3d(-2.5%, -1.5%, 0);
+  }
+  33% {
+    transform: translate3d(1.5%, -3%, 0);
+  }
+  50% {
+    transform: translate3d(-1.5%, 2.5%, 0);
+  }
+  66% {
+    transform: translate3d(2.5%, 1.5%, 0);
+  }
+  83% {
+    transform: translate3d(-2%, -2.5%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* --- Navigation ------------------------------------------------------------ */
+
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 3rem);
+  padding: clamp(0.9rem, 2.2vh, 1.5rem) var(--gutter);
+}
+
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-right: auto;
+  color: var(--super);
+  /* Difference keeps the bar legible over both the dark and the light halves. */
+  mix-blend-mode: difference;
+}
+
+.nav__mark {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid currentColor;
+}
+
+.nav__name {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.2vw, 2.25rem);
+  mix-blend-mode: difference;
+}
+
+.nav__link {
+  position: relative;
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--super);
+  padding-bottom: 0.2rem;
+}
+
+.nav__link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.5s var(--ease);
+}
+
+.nav__link:hover::after {
+  transform: scaleX(1);
+}
+
+.nav__cta {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.15rem;
+  background: var(--super);
+  color: var(--ink);
+  transition: background-color 0.4s var(--ease), color 0.4s var(--ease);
+}
+
+.nav__cta:hover {
+  background: var(--ghost);
+}
+
+.nav__toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  mix-blend-mode: difference;
+}
+
+.nav__toggle-bar {
+  display: block;
+  width: 22px;
+  height: 1px;
+  background: var(--super);
+  transition: transform 0.4s var(--ease);
+}
+
+.nav[data-open='true'] .nav__toggle-bar:first-child {
+  transform: translateY(3px) rotate(45deg);
+}
+
+.nav[data-open='true'] .nav__toggle-bar:last-child {
+  transform: translateY(-3px) rotate(-45deg);
+}
+
+.nav__menu {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 var(--gutter);
+  background: rgba(10, 10, 10, 0.97);
+  backdrop-filter: blur(20px);
+}
+
+.nav__menu[hidden] {
+  display: none;
+}
+
+.nav__menu-link {
+  font-size: clamp(1.6rem, 7vw, 2.6rem);
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.nav__menu-link--cta {
+  margin-top: 1rem;
+  border-bottom: 0;
+  color: var(--chrome);
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* --- Magnetic buttons ------------------------------------------------------ */
+
+.magnetic {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.95rem 1.7rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 550;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: none;
+  cursor: pointer;
+  will-change: transform;
+  transition: background-color 0.45s var(--ease), color 0.45s var(--ease),
+    border-color 0.45s var(--ease), box-shadow 0.45s var(--ease);
+}
+
+.magnetic__label {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+}
+
+.magnetic__arrow {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.45s var(--ease);
+}
+
+.magnetic:hover .magnetic__arrow {
+  transform: translateX(4px);
+}
+
+.magnetic--solid {
+  background: var(--super);
+  color: var(--ink);
+}
+
+.magnetic--solid:hover {
+  box-shadow: 0 22px 55px -26px rgba(255, 255, 255, 0.65);
+}
+
+.magnetic--ghost {
+  border-color: var(--hairline-strong);
+  color: var(--ghost);
+}
+
+.magnetic--ghost:hover {
+  border-color: rgba(245, 245, 247, 0.65);
+  background: rgba(245, 245, 247, 0.06);
+}
+
+.magnetic--onLight {
+  border-color: var(--hairline-dark-strong);
+  color: var(--ink);
+}
+
+.magnetic--onLight:hover {
+  background: rgba(10, 10, 10, 0.05);
+  border-color: rgba(10, 10, 10, 0.6);
+}
+
+.magnetic--inline {
+  padding: 0;
+  border: 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.2em;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.magnetic--inline:hover {
+  opacity: 1;
+}
+
+.magnetic--inline .magnetic__label {
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid currentColor;
+}
+
+.magnetic--glow {
+  padding: 1.2rem 2.4rem;
+  background: var(--ink);
+  color: var(--super);
+  box-shadow: 0 28px 70px -34px rgba(10, 10, 10, 0.85),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.magnetic--glow::before {
+  content: '';
+  position: absolute;
+  inset: -70%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(10, 10, 10, 0.42), transparent 72%);
+  opacity: 0.5;
+  filter: blur(22px);
+  transition: opacity 0.6s var(--ease);
+}
+
+.magnetic--glow:hover::before {
+  opacity: 0.95;
+}
+
+/* --- Reveal masks ---------------------------------------------------------- */
+
+/* No `display` here on purpose: the root keeps its own tag's display so
+   utility classes such as .eyebrow (a flex container) still apply. */
+
+.reveal__inner {
+  display: block;
+}
+
+.reveal__unit {
+  display: inline;
+}
+
+.reveal__mask {
+  display: inline-block;
+  vertical-align: bottom;
+  overflow: hidden;
+  /* Room for descenders without adding layout height. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.reveal__word {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.reveal--lines .reveal__unit,
+.reveal--lines .reveal__mask {
+  display: block;
+}
+
+/* --- Material studies ------------------------------------------------------ */
+
+.material {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(150deg, #111114, #0a0a0c 60%, #141417);
+}
+
+.material__glow {
+  position: absolute;
+  inset: -25%;
+  background: radial-gradient(60% 50% at 50% 42%, rgba(245, 245, 247, 0.16), transparent 70%);
+  filter: blur(16px);
+}
+
+/* Chrome: a polished disc masked into a torus. */
+.material--chrome {
+  background: radial-gradient(125% 125% at 30% 0%, #17171a, #08080a 72%);
+}
+
+.material--chrome .material__disc {
+  position: absolute;
+  inset: 13%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 200deg,
+    #26262b,
+    #f5f5f7 12%,
+    #6d6d74 26%,
+    #15151a 42%,
+    #d8d9de 58%,
+    #4b4b52 72%,
+    #f5f5f7 86%,
+    #26262b 100%
+  );
+  filter: saturate(0.35) contrast(1.05);
+  animation: materialSpin 26s linear infinite;
+}
+
+.material--chrome .material__torus {
+  position: absolute;
+  inset: 13%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 20deg,
+    #1c1c20,
+    #f5f5f7 20%,
+    #8e8e93 38%,
+    #1b1b20 55%,
+    #e8e9ee 74%,
+    #3a3a41 90%,
+    #1c1c20 100%
+  );
+  -webkit-mask: radial-gradient(closest-side, transparent 53%, #000 54%);
+  mask: radial-gradient(closest-side, transparent 53%, #000 54%);
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.75);
+  animation: materialSpin 36s linear infinite reverse;
+}
+
+.material--chrome .material__specular {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(34% 20% at 33% 19%, rgba(255, 255, 255, 0.85), transparent 62%);
+  mix-blend-mode: screen;
+  filter: blur(7px);
+  opacity: 0.65;
+}
+
+/* Frost: stacked panes of etched glass. */
+.material--frost {
+  background: linear-gradient(160deg, #101013, #08080a);
+}
+
+.material__pane {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 56%;
+  height: 66%;
+  border: 1px solid rgba(245, 245, 247, 0.22);
+  background: linear-gradient(
+    150deg,
+    rgba(245, 245, 247, 0.13),
+    rgba(245, 245, 247, 0.02) 48%,
+    rgba(245, 245, 247, 0.08)
+  );
+  backdrop-filter: blur(9px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    0 34px 70px -34px rgba(0, 0, 0, 0.95);
+}
+
+.material__pane--back {
+  transform: translate(-50%, -50%) rotate(-14deg) scale(0.88);
+  opacity: 0.4;
+}
+
+.material__pane--mid {
+  transform: translate(-50%, -50%) rotate(-9deg) scale(0.94);
+  opacity: 0.72;
+}
+
+.material__pane--front {
+  transform: translate(-50%, -50%) rotate(-3deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  padding: 0 12%;
+}
+
+.material__rule {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(245, 245, 247, 0.5), rgba(245, 245, 247, 0.08));
+}
+
+.material__rule--short {
+  width: 62%;
+}
+
+.material__rule--tiny {
+  width: 36%;
+}
+
+/* Rings: a machined lens. */
+.material--rings {
+  background: radial-gradient(120% 120% at 50% 42%, #131317, #07070a 74%);
+}
+
+.material__svg {
+  position: absolute;
+  inset: 6%;
+  width: 88%;
+  height: 88%;
+  animation: materialSpin 64s linear infinite;
+}
+
+.material__rings {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.material__rings--counter {
+  animation: materialSpin 46s linear infinite reverse;
+}
+
+.material__core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 13%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 34% 30%, #ffffff, #b9bcc4 34%, #46464e 72%, #141418);
+  box-shadow: 0 0 70px rgba(245, 245, 247, 0.3);
+}
+
+/* Perimeter: a scanned boundary. */
+.material--perimeter {
+  background: linear-gradient(180deg, #0b0b0d, #101014);
+}
+
+.material__grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(245, 245, 247, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 245, 247, 0.09) 1px, transparent 1px);
+  background-size: 9% 9%;
+  -webkit-mask: radial-gradient(72% 72% at 50% 50%, #000 38%, transparent 100%);
+  mask: radial-gradient(72% 72% at 50% 50%, #000 38%, transparent 100%);
+}
+
+.material__scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 26%;
+  background: linear-gradient(180deg, transparent, rgba(245, 245, 247, 0.13), transparent);
+  filter: blur(2px);
+  animation: materialScan 7.5s ease-in-out infinite;
+}
+
+.material__frame {
+  position: absolute;
+  inset: 8%;
+  border: 1px solid rgba(245, 245, 247, 0.2);
+}
+
+.material__tick {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  border: 1px solid rgba(245, 245, 247, 0.65);
+}
+
+.material__tick--tl {
+  top: -1px;
+  left: -1px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.material__tick--tr {
+  top: -1px;
+  right: -1px;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.material__tick--bl {
+  bottom: -1px;
+  left: -1px;
+  border-right: 0;
+  border-top: 0;
+}
+
+.material__tick--br {
+  bottom: -1px;
+  right: -1px;
+  border-left: 0;
+  border-top: 0;
+}
+
+/* Document: a stack of source files. */
+.material--document {
+  background: linear-gradient(170deg, #101014, #08080a);
+}
+
+.material__sheet {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 50%;
+  height: 62%;
+  border: 1px solid rgba(245, 245, 247, 0.2);
+  background: linear-gradient(160deg, #1a1a1f, #0d0d10);
+  box-shadow: 0 40px 80px -44px rgba(0, 0, 0, 0.95);
+}
+
+.material__sheet--back {
+  transform: translate(-50%, -50%) rotate(7deg) scale(0.92);
+  opacity: 0.45;
+}
+
+.material__sheet--mid {
+  transform: translate(-50%, -50%) rotate(3.5deg) scale(0.96);
+  opacity: 0.7;
+}
+
+.material__sheet--front {
+  transform: translate(-50%, -50%) rotate(-2deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 13px;
+  padding: 0 11%;
+}
+
+@keyframes materialSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes materialScan {
+  0% {
+    transform: translateY(-32%);
+  }
+  50% {
+    transform: translateY(178%);
+  }
+  100% {
+    transform: translateY(-32%);
+  }
+}
+
+/* --- WebGL canvas ---------------------------------------------------------- */
+
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 900px) {
+  .nav__links {
+    display: none;
+  }
+
+  .nav__toggle {
+    display: flex;
+  }
+
+  .nav__name {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .nav__menu {
+    display: none;
+  }
+}
