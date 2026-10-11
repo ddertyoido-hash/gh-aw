@@ -1,0 +1,10 @@
+{
+  "name": "pingpong-fury",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Realistic 3D table tennis game (Ping Pong Fury style) built on three.js with a custom ball physics simulation. Served by a dependency-free Node static server.",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

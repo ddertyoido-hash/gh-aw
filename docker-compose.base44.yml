@@ -1,0 +1,29 @@
+# Base44 sandbox environment for the 3D table tennis game.
+#
+# The game lives in ./pingpong as plain static files (no build step, no npm
+# dependencies) and is served by that folder's dependency-free Node server, which
+# reads straight from this bind mount. Edits to the game appear on reload, so there
+# is no image to rebuild and no dev-server host allowlist to configure.
+services:
+  game:
+    image: node:22
+    working_dir: /app
+    command: ['node', 'server.js']
+    volumes:
+      - ./pingpong:/app
+    ports:
+      - '3000:3000'
+    environment:
+      - BASE44_PREVIEW_MODE
+      - PORT=3000
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(''http://127.0.0.1:3000/health'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 4s
+      retries: 5
+      start_period: 5s
+    restart: on-failure

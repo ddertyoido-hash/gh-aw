@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#070a11" />
+    <title>Table Tennis Fury — 3D</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+
+    <div id="hud">
+      <div id="scorebug">
+        <div class="side">
+          <span class="name you">You</span>
+          <span class="points" id="score-you">0</span>
+          <span class="serve-dot" id="serve-you" title="Your serve"></span>
+        </div>
+        <div class="divider"></div>
+        <div class="side right">
+          <span class="serve-dot" id="serve-rival" title="Rival's serve"></span>
+          <span class="points" id="score-rival">0</span>
+          <span class="name rival">Rival</span>
+        </div>
+      </div>
+
+      <div id="rally"></div>
+
+      <div id="message">
+        <div id="message-text"></div>
+        <div id="submessage"></div>
+      </div>
+
+      <div id="power" aria-hidden="true"><div id="power-fill"></div></div>
+    </div>
+
+    <div id="menu" class="overlay show">
+      <div class="panel">
+        <div class="brand">Table Tennis <span>Fury</span></div>
+        <p class="lede">
+          A 40 mm ball with real spin, drag and bounce. Move your bat under the ball,
+          flick at the moment of contact to load it with pace and spin.
+        </p>
+
+        <div class="label">Opponent</div>
+        <div class="difficulties" id="difficulty">
+          <button data-diff="rookie">Rookie</button>
+          <button data-diff="pro" class="active">Pro</button>
+          <button data-diff="legend">Legend</button>
+        </div>
+        <p class="blurb" id="difficulty-blurb">Solid rallies, punishes loose balls.</p>
+
+        <button id="play" class="primary">Play</button>
+
+        <div id="controls">
+          <div><b>Drag</b> anywhere to slide your bat across the table</div>
+          <div><b>Flick up</b> as you strike for topspin, <b>down</b> for backspin, sideways to place it</div>
+          <div><b>Tap</b> or press <b>space</b> to serve — first to 11, win by two</div>
+        </div>
+
+        <button id="sound" class="ghost" aria-pressed="true">Sound on</button>
+      </div>
+    </div>
+
+    <div id="result" class="overlay">
+      <div class="panel">
+        <div id="result-title" class="win">You win</div>
+        <div id="result-score">11–8</div>
+        <button id="again" class="primary">Rematch</button>
+        <button id="to-menu" class="ghost">Change opponent</button>
+      </div>
+    </div>
+
+    <div id="loader">Building the arena…</div>
+
+    <script type="module" src="./src/main.js"></script>
+    <script>
+      // Dev-server live reload: the static server pushes an event on every file save.
+      try {
+        new EventSource('/__reload').onmessage = () => location.reload();
+      } catch (_) {
+        /* running without the dev server */
+      }
+    </script>
+  </body>
+</html>
