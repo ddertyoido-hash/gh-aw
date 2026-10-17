@@ -74,6 +74,10 @@ docs/public/wasm/wasm_exec.js
 .env.backup
 .env.*.backup
 
+# Cloud AI: committed placeholder defaults (empty values only - no secrets).
+# The compose service references this file, so it must exist in every checkout.
+!cloud-ai/.env.base44-defaults
+
 coverage.html
 /coverage/
 logs/

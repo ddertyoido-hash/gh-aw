@@ -1,0 +1,45 @@
+{
+  "appName": "Cloud AI",
+  "appRoot": "cloud-ai",
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "notes": [
+    "One container runs the Vite dev server (host port 3000 -> container 5173) and the Cloud AI API (container 127.0.0.1:3001). The API is reached through the Vite proxy, so the app is single-origin and needs no CORS.",
+    "The checkout is bind-mounted and dependencies are installed from package-lock.json at container start; edits hot-reload.",
+    "SQLite database, generated images and uploaded attachments live in the cloud_ai_data volume (mounted at /data). Never delete it to refresh dependencies.",
+    "Provider credentials are optional: without them the UI shows a setup screen and no model is contacted."
+  ],
+  "secrets": [
+    {
+      "name": "OPENAI_API_KEY",
+      "description": "OpenAI API key (platform.openai.com/api-keys). Enables chat, vision, image generation, server speech and transcription. Optional: the app boots and shows a setup screen without it.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "ANTHROPIC_API_KEY",
+      "description": "Anthropic API key (console.anthropic.com/settings/keys). Enables Claude models with vision and PDF analysis. Optional.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "GOOGLE_AI_API_KEY",
+      "description": "Google AI Studio key (aistudio.google.com/app/apikey). Enables Gemini models and Imagen 4 image generation. Optional; GEMINI_API_KEY is accepted as an alias.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "STRIPE_SECRET_KEY",
+      "description": "Stripe secret key for Pro plan checkout. Optional: without it the plan screen explains that payments are not configured and never fakes a purchase.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "STRIPE_PRICE_PRO_MONTHLY",
+      "description": "Stripe recurring price ID for the monthly Pro plan. Optional; only needed with STRIPE_SECRET_KEY.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "STRIPE_PRICE_PRO_YEARLY",
+      "description": "Stripe recurring price ID for the yearly Pro plan. Optional; only needed with STRIPE_SECRET_KEY.",
+      "requiredAtBoot": false
+    }
+  ]
+}

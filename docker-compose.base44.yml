@@ -1,0 +1,69 @@
+# Cloud AI - Base44 sandbox environment.
+#
+# Development-oriented: the app runs FROM THE CLONED SOURCE (the checkout is
+# bind-mounted and dependencies are installed from the lockfile at startup), so
+# every edit is picked up by the dev servers without rebuilding an image.
+#
+# Topology: one container runs both components on purpose - the Vite dev server
+# (public, host port 3000 -> 5173) and the Cloud AI API on 127.0.0.1:3001. The
+# API is reached through the dev server's proxy, which gives the app a
+# single-origin setup: no CORS, no cross-site cookies, and no public API port.
+#
+#   docker compose -f docker-compose.base44.yml up -d --build
+#   curl -sI http://localhost:3000/        # interface
+#   curl -s  http://localhost:3000/api/system   # API through the proxy
+
+services:
+  cloud-ai:
+    build:
+      context: ./cloud-ai
+      dockerfile: Dockerfile.dev
+    working_dir: /app
+    # Install/sync dependencies from the committed lockfile after the mounts are
+    # available, then start the live-reload dev servers (vite + tsx watch).
+    command:
+      - sh
+      - -ec
+      - npm install --no-audit --no-fund --prefer-offline && exec npm run dev
+    ports:
+      # The user-facing entry point must be host port 3000.
+      - "3000:5173"
+    volumes:
+      - ./cloud-ai:/app
+      # Dependencies live outside the bind mount so the host checkout stays clean.
+      - cloud_ai_node_modules:/app/node_modules
+      # SQLite database, generated images and uploads survive restarts.
+      - cloud_ai_data:/data
+    environment:
+      # Sandbox-provided flags. BASE44_PREVIEW_MODE is passed through bare so the
+      # app can gate sandbox-only behaviour on the exact value "1"; unset or any
+      # other value keeps normal behaviour.
+      - BASE44_PREVIEW_MODE
+      # Vite >= 6.1 appends this to server.allowedHosts, which the preview proxy
+      # needs because the Host header carries the rotating sandbox id.
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+      - BASE44_SANDBOX_HOST_DOMAIN
+      - CLOUD_AI_DATA_DIR=/data
+      - CLOUD_AI_API_PORT=3001
+      - NODE_ENV=development
+    env_file:
+      # Placeholders first (committed, empty values), then the platform-managed
+      # secrets file LAST so a real key from the dashboard always wins. Both are
+      # optional so the stack also starts before any secret has been provided.
+      - path: ./cloud-ai/.env.base44-defaults
+        required: false
+      - path: /run/base44/app.env
+        required: false
+    restart: on-failure
+    healthcheck:
+      # Checks BOTH components (interface and API) and prints which one failed.
+      # Uses existing endpoints only - no health endpoint was added to the app.
+      test: ["CMD", "node", "scripts/healthcheck.mjs"]
+      interval: 20s
+      timeout: 8s
+      start_period: 120s
+      retries: 5
+
+volumes:
+  cloud_ai_node_modules:
+  cloud_ai_data:

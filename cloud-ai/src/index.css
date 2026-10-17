@@ -1,0 +1,260 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   Cloud AI base layer
+   Accent ramps and ink colours are CSS variables so the Settings screen can
+   re-tint the whole application without a rebuild.
+--------------------------------------------------------------------------- */
+:root {
+  --aurora-cyan: #22d3ee;
+  --aurora-blue: #3b82f6;
+  --aurora-violet: #8b5cf6;
+  --aurora-teal: #14b8a6;
+  --glow-color: rgba(59, 130, 246, 0.5);
+  --ink: #0f172a;
+  --ink-soft: #334155;
+  --ink-muted: #64748b;
+  --glass-tint: 255 255 255;
+  --glass-alpha: 0.68;
+  --glass-border: rgba(255, 255, 255, 0.55);
+}
+
+.dark {
+  --ink: #f1f5f9;
+  --ink-soft: #cbd5e1;
+  --ink-muted: #94a3b8;
+  --glass-tint: 15 23 42;
+  --glass-border: rgba(255, 255, 255, 0.16);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: theme('fontFamily.sans');
+  color: var(--ink);
+  background: #0b1220;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--aurora-blue) 35%, transparent);
+}
+
+/* Thin, unobtrusive scrollbars that match the glass surfaces. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.55);
+  background-clip: content-box;
+}
+
+@layer components {
+  /* Frosted glass surface used by every panel, card and dialog. */
+  .glass {
+    background-color: rgb(var(--glass-tint) / var(--glass-alpha));
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid var(--glass-border);
+    box-shadow: theme('boxShadow.glass');
+  }
+
+  .glass-strong {
+    background-color: rgb(var(--glass-tint) / calc(var(--glass-alpha) + 0.16));
+    backdrop-filter: blur(30px) saturate(160%);
+    -webkit-backdrop-filter: blur(30px) saturate(160%);
+    border: 1px solid var(--glass-border);
+    box-shadow: theme('boxShadow.float');
+  }
+
+  .glass-subtle {
+    background-color: rgb(var(--glass-tint) / calc(var(--glass-alpha) * 0.6));
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid color-mix(in srgb, var(--glass-border) 70%, transparent);
+  }
+
+  .aurora-text {
+    background-image: linear-gradient(
+      100deg,
+      var(--aurora-cyan),
+      var(--aurora-blue) 40%,
+      var(--aurora-violet) 70%,
+      var(--aurora-teal)
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .aurora-surface {
+    background-image: linear-gradient(
+      120deg,
+      var(--aurora-cyan),
+      var(--aurora-blue) 38%,
+      var(--aurora-violet) 72%,
+      var(--aurora-teal)
+    );
+    background-size: 200% 200%;
+  }
+
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--aurora-blue) 70%, transparent),
+      0 0 26px -6px var(--glow-color);
+  }
+}
+
+/* Streaming caret shown while a response is arriving. */
+.streaming-caret::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -2px;
+  background: var(--aurora-blue);
+  animation: caret 1s steps(2, start) infinite;
+}
+
+@keyframes caret {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Markdown typography inside chat bubbles - compact and readable. */
+.markdown {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  word-break: break-word;
+}
+.markdown > * + * {
+  margin-top: 0.7em;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.1em;
+}
+.markdown h1 {
+  font-size: 1.3rem;
+}
+.markdown h2 {
+  font-size: 1.15rem;
+}
+.markdown h3 {
+  font-size: 1.02rem;
+}
+.markdown ul,
+.markdown ol {
+  padding-left: 1.25rem;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li + li {
+  margin-top: 0.25em;
+}
+.markdown a {
+  color: var(--aurora-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--aurora-blue) 55%, transparent);
+  padding-left: 0.85rem;
+  color: var(--ink-soft);
+}
+.markdown code {
+  font-family: theme('fontFamily.mono');
+  font-size: 0.85em;
+  background: rgba(15, 23, 42, 0.08);
+  padding: 0.12em 0.35em;
+  border-radius: 6px;
+}
+.markdown pre {
+  background: rgba(15, 23, 42, 0.9);
+  color: #e2e8f0;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.83rem;
+  line-height: 1.55;
+}
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+.markdown th {
+  background: rgba(148, 163, 184, 0.16);
+  font-weight: 600;
+}
+
+/* hljs theme tweaks so code blocks stay legible on the dark surface. */
+.markdown pre code.hljs {
+  background: transparent;
+  padding: 0;
+}
+
+/* Respect the operating system setting and the in-app preference. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}

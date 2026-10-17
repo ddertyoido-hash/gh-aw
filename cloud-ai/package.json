@@ -1,0 +1,52 @@
+{
+  "name": "cloud-ai",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Cloud AI - a premium desktop AI assistant (chat, images, agents, voice) with a nature-inspired glass interface.",
+  "scripts": {
+    "dev": "concurrently -k -n WEB,API -c cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:web": "vite --host 0.0.0.0 --port 5173 --strictPort",
+    "dev:api": "tsx watch server/index.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p server/tsconfig.json",
+    "build": "npm run typecheck && vite build",
+    "start": "tsx server/index.ts",
+    "healthcheck": "node scripts/healthcheck.mjs",
+    "desktop:install": "npm --prefix electron install",
+    "desktop": "npm --prefix electron start",
+    "desktop:dist": "npm --prefix electron run dist"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2",
+    "framer-motion": "^11.15.0",
+    "highlight.js": "^11.11.1",
+    "lucide-react": "^0.469.0",
+    "multer": "^1.4.5-lts.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.3",
+    "rehype-highlight": "^7.0.1",
+    "remark-gfm": "^4.0.0",
+    "tsx": "^4.19.2",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^6.3.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "cloud-ai-desktop",
+  "productName": "Cloud AI",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Electron desktop shell for Cloud AI - native window, tray, notifications and an encrypted credential store.",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "app.cloudai.desktop",
+    "productName": "Cloud AI",
+    "directories": {
+      "output": "dist"
+    },
+    "files": ["main.cjs", "preload.cjs", "../dist/**", "../server/**", "../public/**", "package.json"],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "../public/icon.svg",
+      "target": ["dmg"]
+    },
+    "win": {
+      "target": ["nsis"],
+      "icon": "../public/icon.svg"
+    },
+    "linux": {
+      "category": "Utility",
+      "target": ["AppImage", "deb"],
+      "icon": "../public/icon.svg"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.3.1",
+    "electron-builder": "^25.1.8"
+  }
+}
