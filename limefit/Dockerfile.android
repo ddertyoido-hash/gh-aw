@@ -1,0 +1,27 @@
+# Android build environment for the LimeFit APK.
+#
+# Deliberately small: a JDK plus the Android command-line tools, the android-34
+# platform and build-tools 34.0.0. The app source is bind-mounted at build time
+# (see docker-compose.base44.yml), so nothing here is baked into the image.
+FROM eclipse-temurin:17-jdk-jammy
+
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl unzip zip ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p "$ANDROID_HOME/cmdline-tools" /tmp/clt \
+ && curl -fsSL -o /tmp/clt.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip \
+ && unzip -q /tmp/clt.zip -d /tmp/clt \
+ && mv /tmp/clt/cmdline-tools "$ANDROID_HOME/cmdline-tools/latest" \
+ && rm -rf /tmp/clt /tmp/clt.zip \
+ && yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null \
+ && "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+      "platforms;android-34" "build-tools;34.0.0" "platform-tools" > /dev/null \
+ && rm -rf "$ANDROID_HOME/.temp" "$ANDROID_HOME/.downloadIntermediates"
+
+ENV PATH="${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/build-tools/34.0.0"
+
+WORKDIR /workspace
+CMD ["bash", "limefit/android/build-apk.sh", "/workspace"]

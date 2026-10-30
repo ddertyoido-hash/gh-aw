@@ -1,17 +1,23 @@
-# Cloud AI - Base44 sandbox environment.
+# Base44 sandbox environment for this repository's two runnable projects.
 #
-# Development-oriented: the app runs FROM THE CLONED SOURCE (the checkout is
+# Development-oriented: both apps run FROM THE CLONED SOURCE (the checkout is
 # bind-mounted and dependencies are installed from the lockfile at startup), so
-# every edit is picked up by the dev servers without rebuilding an image.
+# every edit is picked up without rebuilding an image.
 #
-# Topology: one container runs both components on purpose - the Vite dev server
-# (public, host port 3000 -> 5173) and the Cloud AI API on 127.0.0.1:3001. The
-# API is reached through the dev server's proxy, which gives the app a
+# Projects:
+#   limefit   (host port 3000)  the single-file fitness app + its Android APK
+#   cloud-ai  (host port 3100)  the Cloud AI desktop assistant web interface
+#
+# Cloud AI topology: one container runs both components on purpose - the Vite
+# dev server (host port 3100 -> 5173) and the Cloud AI API on 127.0.0.1:3001.
+# The API is reached through the dev server's proxy, which gives the app a
 # single-origin setup: no CORS, no cross-site cookies, and no public API port.
 #
 #   docker compose -f docker-compose.base44.yml up -d --build
-#   curl -sI http://localhost:3000/        # interface
-#   curl -s  http://localhost:3000/api/system   # API through the proxy
+#   curl -sI http://localhost:3000/             # LimeFit + APK download
+#   curl -sI http://localhost:3000/LimeFit.apk  # the built installer
+#   curl -s  http://localhost:3100/             # Cloud AI interface
+#   curl -s  http://localhost:3100/api/system   # Cloud AI API via the proxy
 
 services:
   cloud-ai:
@@ -25,9 +31,13 @@ services:
       - sh
       - -ec
       - npm install --no-audit --no-fund --prefer-offline && exec npm run dev
+    labels:
+      base44.project: "Cloud AI"
+      base44.kind: web
+      base44.port: "3100"
     ports:
-      # The user-facing entry point must be host port 3000.
-      - "3000:5173"
+      # Secondary entry point while LimeFit owns the main preview (port 3000).
+      - "3100:5173"
     volumes:
       - ./cloud-ai:/app
       # Dependencies live outside the bind mount so the host checkout stays clean.
@@ -63,6 +73,53 @@ services:
       timeout: 8s
       start_period: 120s
       retries: 5
+
+  # ---------------------------------------------------------------------------
+  # LimeFit - the single-file fitness app (limefit/www/index.html) served as a
+  # phone-sized web preview, plus the Android package built from the same file.
+  #
+  #   http://localhost:3000/                # the app itself (main preview)
+  #   http://localhost:3000/LimeFit.apk     # the signed installer
+  #
+  # The APK is produced by the one-shot apk-builder service below; rebuild it
+  # with: docker compose -f docker-compose.base44.yml run --rm apk-builder
+  # ---------------------------------------------------------------------------
+  limefit:
+    image: nginx:alpine
+    labels:
+      base44.project: "LimeFit"
+      base44.kind: web
+      base44.port: "3000"
+    ports:
+      # Main preview entry point: the app plus its APK download.
+      - "3000:80"
+    volumes:
+      - ./limefit/www:/usr/share/nginx/html:ro
+      - ./limefit/dist:/srv/apk:ro
+      - ./limefit/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/index.html"]
+      interval: 20s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  # One-shot Android build: aapt2 -> javac -> d8 -> zipalign -> apksigner.
+  # Writes limefit/dist/LimeFit.apk, which the limefit service serves.
+  apk-builder:
+    build:
+      context: .
+      dockerfile: limefit/Dockerfile.android
+    image: app-limefit-android:latest
+    labels:
+      base44.project: "LimeFit APK builder"
+      base44.kind: worker
+    volumes:
+      - ./limefit:/workspace/limefit
+    working_dir: /workspace
+    command: ["bash", "/workspace/limefit/android/build-apk.sh", "/workspace"]
+    restart: "no"
 
 volumes:
   cloud_ai_node_modules:

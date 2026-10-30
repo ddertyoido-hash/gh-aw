@@ -207,3 +207,7 @@ test-script-mode.lock.yml
 
 # Playwright CLI output (screenshots, console logs captured during agent runs)
 .playwright-cli/
+
+# LimeFit Android build output (APK, debug keystore, intermediate files)
+limefit/android/build/
+limefit/dist/

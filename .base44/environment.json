@@ -1,14 +1,15 @@
 {
-  "appName": "Cloud AI",
-  "appRoot": "cloud-ai",
+  "appName": "LimeFit + Cloud AI",
+  "appRoot": ".",
   "previewPort": 3000,
   "healthPath": "/",
-  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d --build",
   "notes": [
-    "One container runs the Vite dev server (host port 3000 -> container 5173) and the Cloud AI API (container 127.0.0.1:3001). The API is reached through the Vite proxy, so the app is single-origin and needs no CORS.",
-    "The checkout is bind-mounted and dependencies are installed from package-lock.json at container start; edits hot-reload.",
-    "SQLite database, generated images and uploaded attachments live in the cloud_ai_data volume (mounted at /data). Never delete it to refresh dependencies.",
-    "Provider credentials are optional: without them the UI shows a setup screen and no model is contacted."
+    "Two runnable projects. LimeFit (the attached single-file fitness app) is the main entry point on host port 3000: nginx serves limefit/www/index.html and the built installer at /LimeFit.apk. Cloud AI is on host port 3100 (Vite dev server + its API on container 127.0.0.1:3001, reached through the Vite proxy, so it stays single-origin and needs no CORS).",
+    "The LimeFit APK is built by the one-shot apk-builder service (limefit/Dockerfile.android: JDK 17 + Android cmdline-tools + android-34 + build-tools 34.0.0) running limefit/android/build-apk.sh: aapt2 -> javac -> d8 -> zipalign -> apksigner. No Gradle. Output is limefit/dist/LimeFit.apk (git-ignored, together with the generated debug keystore).",
+    "Rebuild the APK after editing limefit/www/index.html with: docker compose -f docker-compose.base44.yml run --rm apk-builder. The web preview and the APK bundle the same file.",
+    "The Cloud AI checkout is bind-mounted and dependencies are installed from package-lock.json at container start; edits hot-reload. Its SQLite database, generated images and uploaded attachments live in the cloud_ai_data volume (mounted at /data). Never delete it to refresh dependencies.",
+    "Provider credentials are optional: without them the Cloud AI UI shows a setup screen and no model is contacted."
   ],
   "secrets": [
     {
