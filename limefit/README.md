@@ -25,6 +25,10 @@ curl -sI http://localhost:3000/                            # the app
 curl -sI http://localhost:3000/LimeFit.apk                 # the installer
 ```
 
+The web copy (`www/index.html`) carries a one-line "Download Android APK" pill so the
+installer can be fetched from the preview; `build-apk.sh` strips that line, so the APK
+bundles the plain app (verified byte-identical to the source file).
+
 ## Rebuilding the APK
 
 The `apk-builder` service is a one-shot job that writes `limefit/dist/LimeFit.apk`; the

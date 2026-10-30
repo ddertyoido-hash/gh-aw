@@ -32,7 +32,13 @@ rm -rf "$WORK"
 mkdir -p "$WORK/classes" "$WORK/dex" "$WORK/assets/www" "$OUT_DIR"
 
 echo "==> copying web app into assets/www"
-cp "$WEB_DIR/index.html" "$WORK/assets/www/index.html"
+# The web copy carries a "Download Android APK" pill for the browser preview;
+# it has no meaning inside the installed app, so it is stripped from the bundle.
+grep -v 'id="apk"' "$WEB_DIR/index.html" > "$WORK/assets/www/index.html"
+if grep -q 'id="apk"' "$WORK/assets/www/index.html"; then
+  echo "failed to strip the web-only download pill from the bundled app" >&2
+  exit 1
+fi
 
 echo "==> compiling resources"
 "$BUILD_TOOLS/aapt2" compile --dir "$ANDROID_DIR/res" -o "$WORK/res.zip"
